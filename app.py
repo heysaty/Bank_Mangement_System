@@ -1,4 +1,6 @@
-from fastapi import FastAPI, Depends, Request, Form, status
+from _curses import flash
+
+from fastapi import FastAPI, Depends, Request, Form, status, HTTPException
 
 from starlette.responses import RedirectResponse
 from starlette.templating import Jinja2Templates
@@ -6,6 +8,12 @@ from starlette.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from database import SessionLocal, engine
 import models
+from hashing import Hasher
+
+#
+# print(Hasher.get_password_hash('satyam'))
+# print(Hasher.verify_password('satyam',Hasher.get_password_hash('satyam')))
+
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -25,57 +33,103 @@ def get_db():
 
 @app.get("/")
 async def home(req: Request, db: Session = Depends(get_db)):
-    sign_up = db.query(models.signup).all()
+    sign_up = db.query(models.users).all()
     return templates.TemplateResponse("base.html", {"request": req, "todo_list": sign_up})
 
 
-@app.get("/")
-async def home_login(req: Request, db: Session = Depends(get_db)):
-    sign_up = db.query(models.signup).all()
-    return templates.TemplateResponse("login.html")
+# @app.get("/")
+# async def home_login(req: Request, db: Session = Depends(get_db)):
+#     sign_up = db.query(models.signup).all()
+#     return templates.TemplateResponse("login.html")
 
 
 @app.post("/signup", status_code=status.HTTP_201_CREATED)
-def signup(req: Request,
-           first_name: str = Form(...),
-           last_name: str = Form(...),
-           email: str = Form(...),
-           contact: str = Form(...),
-           password: str = Form(...), db: Session = Depends(get_db)):
-    new_signup = models.signup(first_name=first_name,
-                               last_name=last_name,
-                               email=email,
-                               contact=contact,
-                               password=password)
-    db.add(new_signup)
-    db.commit()
-    db.close()
-    url = app.url_path_for("home")
+async def signup(req: Request,
+                 first_name: str = Form(...),
+                 last_name: str = Form(...),
+                 email: str = Form(...),
+                 contact: str = Form(...),
+                 password: str = Form(...), db: Session = Depends(get_db)):
+    form = await req.form()
+    email = form.get("email")
+    password = Hasher.get_password_hash(form.get("password"))
+    errors = []
+    if not email:
+        errors.append('Enter a valid email')
+    if not password:
+        errors.append("Enter valid password")
+    if len(errors) > 0:
+        return templates.TemplateResponse(
+            'base.html', {"request": req, "errors": errors}
+        )
+
+    # try:
+    user = db.query(models.users).filter(models.users.email == email).first()
+
+    if user is None:
+
+        new_signup = models.users(first_name=first_name,
+                                  last_name=last_name,
+                                  email=email,
+                                  contact=contact,
+                                  password=password)
+        db.add(new_signup)
+        db.commit()
+        db.close()
+        url = app.url_path_for("home")
+        return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
+
+
+    else:
+        print("error hai")
+        errors.append("Email already exists")
+        return "Email already exists"
+
+        # return templates.TemplateResponse(
+        #     'login.html'
+        # )
+        # raise HTTPException(status_code=status.HTTP_208_ALREADY_REPORTED)
+
+    # except:
+    #     errors.append("Something Wrong while authentication or storing tokens!")
+    #     print("except main")
+    #     return templates.TemplateResponse(
+    #         "base.html", {"request": req, "errors": errors}
+    #     )
 
     # return 'success'
     #
-    return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
 
 
+# @app.get("/login")
+# def login():
+#     return templates.TemplateResponse('login.html')
 
 @app.get("/login")
-def login():
-    return templates.TemplateResponse('login.html')
+def login(req: Request):
+    return templates.TemplateResponse("login.html", {"request": req})
+
 
 @app.post("/login")
-def login(req: Request,
+async def login(req: Request,
           email: str = Form(...),
           password: str = Form(...), db: Session = Depends(get_db)):
-    new_signup = models.signup(email=email,
-                               password=password)
-    db.add(new_signup)
-    db.commit()
-    # db.close()
-    url = app.url_path_for("home_login")
+    form = await req.form()
 
-    return templates.TemplateResponse('login.html')
+    email=form.get(email)
+    password=form.get(password)
+
+
+
+    # return "success"
+    return templates.TemplateResponse('deposits.html')
 
     # return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
+
+@app.get("/deposits")
+def deposits(req: Request):
+    return templates.TemplateResponse("deposits.html", {"request": req})
+
 
 #
 # @app.get("/update/{todo_id}")
