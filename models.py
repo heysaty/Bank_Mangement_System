@@ -12,3 +12,4 @@ class signup(Base):
     email = Column(String(100))
     contact = Column(String(100))
     password = Column(String(100))
+

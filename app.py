@@ -29,6 +29,12 @@ async def home(req: Request, db: Session = Depends(get_db)):
     return templates.TemplateResponse("base.html", {"request": req, "todo_list": sign_up})
 
 
+@app.get("/")
+async def home_login(req: Request, db: Session = Depends(get_db)):
+    sign_up = db.query(models.signup).all()
+    return templates.TemplateResponse("login.html")
+
+
 @app.post("/signup", status_code=status.HTTP_201_CREATED)
 def signup(req: Request,
            first_name: str = Form(...),
@@ -47,8 +53,29 @@ def signup(req: Request,
     url = app.url_path_for("home")
 
     # return 'success'
-
+    #
     return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
+
+
+
+@app.get("/login")
+def login():
+    return templates.TemplateResponse('login.html')
+
+@app.post("/login")
+def login(req: Request,
+          email: str = Form(...),
+          password: str = Form(...), db: Session = Depends(get_db)):
+    new_signup = models.signup(email=email,
+                               password=password)
+    db.add(new_signup)
+    db.commit()
+    # db.close()
+    url = app.url_path_for("home_login")
+
+    return templates.TemplateResponse('login.html')
+
+    # return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
 
 #
 # @app.get("/update/{todo_id}")
