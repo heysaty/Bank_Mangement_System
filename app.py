@@ -6,6 +6,8 @@ from starlette.responses import RedirectResponse
 from starlette.templating import Jinja2Templates
 
 from sqlalchemy.orm import Session
+
+import hashing
 from database import SessionLocal, engine
 import models
 from hashing import Hasher
@@ -54,14 +56,14 @@ async def signup(req: Request,
     email = form.get("email")
     password = Hasher.get_password_hash(form.get("password"))
     errors = []
-    if not email:
-        errors.append('Enter a valid email')
-    if not password:
-        errors.append("Enter valid password")
-    if len(errors) > 0:
-        return templates.TemplateResponse(
-            'base.html', {"request": req, "errors": errors}
-        )
+    # if not email:
+    #     errors.append('Enter a valid email')
+    # if not password:
+    #     errors.append("Enter valid password")
+    # if len(errors) > 0:
+    #     return templates.TemplateResponse(
+    #         'base.html', {"request": req, "errors": errors}
+    #     )
 
     # try:
     user = db.query(models.users).filter(models.users.email == email).first()
@@ -76,13 +78,14 @@ async def signup(req: Request,
         db.add(new_signup)
         db.commit()
         db.close()
-        url = app.url_path_for("home")
-        return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
+        # url = app.url_path_for("home")
+        return templates.TemplateResponse("login.html", {"request": req})
+        # return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
 
 
     else:
-        print("error hai")
-        errors.append("Email already exists")
+        # print("error hai")
+        # errors.append("Email already exists")
         return "Email already exists"
 
         # return templates.TemplateResponse(
@@ -112,24 +115,37 @@ def login(req: Request):
 
 @app.post("/login")
 async def login(req: Request,
-          email: str = Form(...),
-          password: str = Form(...), db: Session = Depends(get_db)):
+                email: str = Form(...),
+                password: str = Form(...),
+                db: Session = Depends(get_db)):
     form = await req.form()
 
-    email=form.get(email)
-    password=form.get(password)
+    email = form.get("email")
+    password = form.get("password")
+    print(email, password)
+    user = db.query(models.users).filter(models.users.email == email).first()
+
+    print(user.password)
 
 
+    if user is None:
+        return "Wrong Credentials"
 
-    # return "success"
-    return templates.TemplateResponse('deposits.html')
+    else:
+        auth = Hasher.verify_password(password,user.password)
+        if auth:
+
+            # return "success"
+            return templates.TemplateResponse('deposits.html', {"request": req})
+        else:
+            return "wrong password"
 
     # return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
+
 
 @app.get("/deposits")
 def deposits(req: Request):
     return templates.TemplateResponse("deposits.html", {"request": req})
-
 
 #
 # @app.get("/update/{todo_id}")
