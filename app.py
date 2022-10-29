@@ -122,17 +122,16 @@ async def login(req: Request,
 
     email = form.get("email")
     password = form.get("password")
-    print(email, password)
+    # print(email, password)
     user = db.query(models.users).filter(models.users.email == email).first()
 
-    print(user.password)
-
+    # print(user.password)
 
     if user is None:
         return "Wrong Credentials"
 
     else:
-        auth = Hasher.verify_password(password,user.password)
+        auth = Hasher.verify_password(password, user.password)
         if auth:
 
             # return "success"
@@ -146,6 +145,36 @@ async def login(req: Request,
 @app.get("/deposits")
 def deposits(req: Request):
     return templates.TemplateResponse("deposits.html", {"request": req})
+
+
+@app.post("/deposits")
+async def deposits(req: Request,
+                   email: str = Form(...),
+                   amount: str = Form(...),
+                   db: Session = Depends(get_db)):
+    form = await req.form()
+    email = form.get("email")
+    amount = form.get("amount")
+    print(email, amount)
+
+    user = db.query(models.users).filter(models.users.email == email).first()
+    print(user)
+    if user is None:
+        return "invalid user"
+    else:
+        user_deposit = db.query(models.deposits).filter(models.deposits.user_id == user.id).first()
+
+        if user_deposit:
+            user_deposit.amount = int(user_deposit.amount) + int(amount)
+        else:
+            new_deposit = models.deposits(amount=amount,
+                                          user_id=user.id)
+            db.add(new_deposit)
+            # print(new_deposit)
+
+        db.commit()
+        db.close()
+        return templates.TemplateResponse("deposits.html", {"request": req})
 
 #
 # @app.get("/update/{todo_id}")
