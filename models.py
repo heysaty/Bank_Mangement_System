@@ -14,7 +14,7 @@ class users(Base):
     contact = Column(String(100))
     password = Column(String(100))
 
-    # user_deposits = relationship("deposits", back_populates='customer')
+    user_deposits = relationship("deposits", back_populates='customer')
 
 
 class deposits(Base):
@@ -22,10 +22,10 @@ class deposits(Base):
 
     id = Column(Integer, primary_key=True)
     amount = Column(String(100))
-    user_id = Column(Integer)
-    # user_id = Column(Integer, ForeignKey("users.id"))
+    # user_id = Column(Integer)
+    user_id = Column(Integer, ForeignKey("users.id"))
 
-    # customer = relationship("users", back_populates='user_deposits')
+    customer = relationship("users", back_populates='user_deposits')
 
 #
 # @router.get("/login")

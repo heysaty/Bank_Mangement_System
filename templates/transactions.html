@@ -10,15 +10,21 @@
     <body>
         <div style="margin-top: 50px;" class="ui container">
             <h1 class="ui center aligned header">ABC Bank </h1>
-            <h3 class="ui center aligned header">Deposit Page</h3>
+            <h3 class="ui center aligned header">Transaction Page</h3>
 
 
-            <form class="ui form" action="/deposits" method="post">
+            <form class="ui form" action="/transactions" method="post">
 
 
                 <div class="field">
-                    <label>Email</label>
-                    <input type="email" name="email" placeholder="Enter Email..." required>
+                    <label>Sender</label>
+                    <input type="email" name="sender" placeholder="Enter Your Email..." required>
+                    <br>
+                </div>
+
+                <div class="field">
+                    <label>Receiver</label>
+                    <input type="email" name="receiver" placeholder="Enter Reciever Email..." required>
                     <br>
                 </div>
 
@@ -27,10 +33,8 @@
                     <input type="number" name="amount" placeholder="Enter Amount..." required>
                     <br>
                 </div>
-                <button  href = "/deposits" class="ui blue button" type="submit">Deposit</button>
-                <br>
-                <br>
-                <a  class="ui center blue button" href="/transactions"><h5>Money Transfer</h5></a>
+                <button  href = "/transactions" class="ui blue button" type="submit">Complete Transaction</button>
+<!--                <a  class="ui center blue button" href="/transactions"><h5>Login</h5></a>-->
 <!--                 <a class="ui center blue button" href="/deposits"><h4>Deposit</h4></a>-->
 
 <!--                <br>-->
