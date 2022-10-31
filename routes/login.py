@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request, Form, status
+from fastapi import APIRouter, Depends, Request, Form, status, responses
 
 from sqlalchemy.orm import Session
 from database import get_db
@@ -39,7 +39,10 @@ async def login(req: Request,
         if auth:
 
             # return "success"
-            return templates.TemplateResponse('deposits.html', {"request": req})
+            # return templates.TemplateResponse('deposits.html', {"request": req})
+            return responses.RedirectResponse(
+                "/deposits", status_code=status.HTTP_302_FOUND
+            )
         else:
             return "wrong password"
 
