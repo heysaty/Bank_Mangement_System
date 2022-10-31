@@ -1,0 +1,41 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Todo App - Fastapi</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
+    </head>
+    <body>
+        <div style="margin-top: 50px;" class="ui container">
+            <h1 class="ui center aligned header">Fast Bank</h1>
+             <h3 class="ui center aligned header">Balance Information</h3>
+
+            <form class="ui form" action="/balance" method="post">
+                <div class="field">
+                    <label>Email</label>
+                    <input type="email" name="email" placeholder="Enter Email..." required>
+                    <br>
+                </div>
+                <button href="/balance" class="ui blue button" type="submit">Check Balance</button>
+            </form>
+
+            <hr>
+
+            {% for todo in balance %}
+            <div class="ui segment">
+                <p class="ui big header">Rs : {{ todo }}</p>
+
+
+            </div>
+            {% endfor %}
+
+        </div>
+
+
+    </body>
+
+</html>

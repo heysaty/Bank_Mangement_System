@@ -36,7 +36,7 @@ def get_db():
 @app.get("/")
 async def home(req: Request, db: Session = Depends(get_db)):
     sign_up = db.query(models.users).all()
-    return templates.TemplateResponse("base.html", {"request": req, "todo_list": sign_up})
+    return templates.TemplateResponse("base.html", {"request": req})
 
 
 # @app.get("/")
@@ -210,8 +210,8 @@ async def transactions(req: Request,
         return "sender has no deposits"
     else:
         if receiver_deposit is None:
-            new_receiver_deposit=models.deposits(amount=amount,
-                                                 user_id=receiver_user.id)
+            new_receiver_deposit = models.deposits(amount=amount,
+                                                   user_id=receiver_user.id)
             if int(amount) > int(sender_deposit.amount):
                 return "sender doesn't have that much deposit"
             else:
@@ -232,10 +232,39 @@ async def transactions(req: Request,
             db.close()
             return "success"
 
-
-
-
     return templates.TemplateResponse("transactions.html", {"request": req})
+
+
+@app.get("/balance")
+def balance(req: Request):
+    return templates.TemplateResponse("balance.html", {"request": req})
+
+
+@app.post("/balance")
+async def balance(req: Request,
+                  email: str = Form(...),
+                  db: Session = Depends(get_db)):
+    form = await req.form()
+    email = form.get("email")
+
+    user = db.query(models.users).filter(models.users.email == email).first()
+    print(user)
+    if user is None:
+        return "invalid user"
+    else:
+        user_deposit = db.query(models.deposits).filter(models.deposits.user_id == user.id).first()
+
+        if user_deposit:
+            balance = []
+            balance.append(user_deposit.amount)
+            return templates.TemplateResponse("balance.html", {"request": req, "balance": balance})
+        else:
+            balance = []
+            balance.append(0)
+            return templates.TemplateResponse("balance.html", {"request": req, "balance": balance})
+
+
+    # return templates.TemplateResponse("balance.html", {"request": req, "balance": balance})
 
 #
 # @app.get("/update/{todo_id}")
